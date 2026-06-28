@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo Simulasi — Scoping Review Vitamin D &amp; MDD</title>
+<style>
+  :root{
+    --bg:#FAFAFA; --panel:#FFFFFF; --navy:#1E3A5F; --navy-soft:#2B4F7E;
+    --teal:#0891B2; --teal-soft:#E0F2FE; --ink:#1E293B; --muted:#64748B;
+    --line:#E2E8F0; --green:#059669; --green-bg:#DCFCE7;
+    --amber:#D97706; --amber-bg:#FEF9C3; --red:#DC2626; --red-bg:#FEE2E2;
+    --gray-bg:#F1F5F9; --shadow:0 1px 3px rgba(15,23,42,.06),0 4px 16px rgba(15,23,42,.05);
+    --radius:12px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,'Segoe UI',Roboto,'Inter',system-ui,sans-serif;
+    background:var(--bg); color:var(--ink);
+    -webkit-font-smoothing:antialiased; overflow:hidden;
+  }
+
+  /* ===== HEADER ===== */
+  header{
+    position:fixed; top:0; left:0; right:0; height:52px; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 24px; background:rgba(255,255,255,.92);
+    backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .tag{
+    font-size:10px; font-weight:700; letter-spacing:.12em; color:#fff;
+    background:var(--navy); padding:4px 9px; border-radius:6px; text-transform:uppercase;
+  }
+  .brand .tag.sim{background:var(--teal)}
+  .brand .ttl{font-size:12.5px;font-weight:600;color:var(--navy);letter-spacing:.01em}
+  .brand .ttl span{color:var(--muted);font-weight:400}
+  .hsection{font-size:12px;font-weight:600;color:var(--teal);letter-spacing:.02em}
+
+  /* ===== PROGRESS DOTS ===== */
+  .dots{display:flex;gap:9px;align-items:center}
+  .dot{
+    width:9px;height:9px;border-radius:50%;background:var(--line);
+    cursor:pointer;transition:all .25s;border:none;padding:0;
+  }
+  .dot:hover{background:#cbd5e1;transform:scale(1.2)}
+  .dot.active{background:var(--teal);width:24px;border-radius:5px}
+
+  /* ===== STAGE ===== */
+  #stage{position:fixed;top:52px;bottom:60px;left:0;right:0;overflow:hidden}
+  .section{
+    position:absolute;inset:0;opacity:0;visibility:hidden;
+    transition:opacity .28s ease;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:22px 30px;overflow:auto;
+  }
+  .section.active{opacity:1;visibility:visible}
+  .wrap{width:100%;max-width:1080px;margin:auto}
+
+  /* ===== SECTION TITLES ===== */
+  .sec-kicker{
+    font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--teal);
+    text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:10px;
+  }
+  .sec-kicker .ill{
+    background:var(--amber-bg);color:var(--amber);font-size:9.5px;font-weight:700;
+    padding:2px 8px;border-radius:20px;letter-spacing:.06em;
+  }
+  .sec-title{font-size:23px;font-weight:700;color:var(--navy);line-height:1.2;margin-bottom:4px}
+  .sec-sub{font-size:12.5px;color:var(--muted);margin-bottom:18px;font-style:italic}
+
+  /* ===== FOOTER NAV ===== */
+  footer{
+    position:fixed;bottom:0;left:0;right:0;height:60px;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 24px;background:rgba(255,255,255,.92);
+    backdrop-filter:blur(8px);border-top:1px solid var(--line);
+  }
+  .navbtn{
+    display:inline-flex;align-items:center;gap:8px;font-family:inherit;
+    font-size:13px;font-weight:600;padding:10px 18px;border-radius:9px;
+    border:1px solid var(--line);background:#fff;color:var(--navy);cursor:pointer;
+    transition:all .18s;
+  }
+  .navbtn:hover:not(:disabled){border-color:var(--teal);color:var(--teal);transform:translateY(-1px)}
+  .navbtn:disabled{opacity:.32;cursor:default}
+  .navbtn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .navbtn.primary:hover{background:var(--navy-soft);color:#fff;transform:translateY(-1px)}
+  .foot-hint{font-size:11px;color:var(--muted)}
+  .foot-hint kbd{
+    font-family:inherit;background:var(--gray-bg);border:1px solid var(--line);
+    border-radius:4px;padding:1px 6px;font-size:10.5px;color:var(--ink);margin:0 1px;
+  }
+
+  /* ===== LANDING ===== */
+  .landing{text-align:center}
+  .landing .badge{
+    display:inline-block;font-size:11px;font-weight:700;letter-spacing:.14em;
+    color:var(--teal);background:var(--teal-soft);padding:7px 16px;border-radius:30px;
+    text-transform:uppercase;margin-bottom:24px;
+  }
+  .landing h1{font-size:32px;font-weight:700;color:var(--navy);line-height:1.25;margin-bottom:14px;letter-spacing:-.01em}
+  .landing .proto{font-size:13.5px;color:var(--muted);font-style:italic;margin-bottom:8px}
+  .landing .who{font-size:14px;color:var(--ink);font-weight:500;margin-bottom:26px}
+  .landing .disc{
+    max-width:620px;margin:0 auto 30px;font-size:12.5px;color:var(--muted);line-height:1.6;
+    background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--amber);
+    border-radius:10px;padding:14px 18px;text-align:left;
+  }
+  .landing .disc b{color:var(--amber)}
+  .start{
+    display:inline-flex;align-items:center;gap:10px;font-family:inherit;
+    font-size:15px;font-weight:600;padding:15px 30px;border-radius:12px;
+    background:var(--navy);color:#fff;border:none;cursor:pointer;
+    box-shadow:var(--shadow);transition:all .2s;
+  }
+  .start:hover{background:var(--navy-soft);transform:translateY(-2px);box-shadow:0 6px 22px rgba(30,58,95,.25)}
+  .landing .kbtip{margin-top:22px;font-size:11px;color:var(--muted)}
+  .landing .kbtip kbd{
+    font-family:inherit;background:var(--gray-bg);border:1px solid var(--line);
+    border-radius:4px;padding:2px 7px;font-size:10.5px;margin:0 2px;
+  }
+  .logo-uni{
+    position:absolute;top:24px;left:30px;font-size:11px;font-weight:700;
+    color:var(--navy);letter-spacing:.04em;
+  }
+  .logo-uni span{display:block;font-weight:400;color:var(--muted);font-size:9.5px;letter-spacing:.08em}
+
+  /* ===== PRISMA FLOW ===== */
+  .prisma{display:flex;flex-direction:column;gap:0;align-items:center}
+  .pf-row{display:flex;align-items:stretch;gap:14px;width:100%;max-width:880px;justify-content:center}
+  .pf-box{
+    background:var(--panel);border:1.5px solid var(--line);border-radius:11px;
+    padding:13px 18px;box-shadow:var(--shadow);position:relative;flex:1;
+  }
+  .pf-box.main{border-left:3px solid var(--navy)}
+  .pf-box.excl{flex:.85;border-left:3px solid var(--red);background:#fffdfd}
+  .pf-box.final{border:2px solid var(--green);background:var(--green-bg)}
+  .pf-stage{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--navy);margin-bottom:6px}
+  .pf-box.excl .pf-stage{color:var(--red)}
+  .pf-box.final .pf-stage{color:var(--green)}
+  .pf-num{font-size:21px;font-weight:700;color:var(--navy);line-height:1}
+  .pf-box.final .pf-num{color:var(--green)}
+  .pf-lbl{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.45}
+  .pf-detail{font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:2px}
+  .pf-arrow{width:2px;height:16px;background:var(--line);margin:0 auto}
+  .pf-arrow::after{content:'▾';display:block;color:#cbd5e1;font-size:11px;text-align:center;margin-top:-4px}
+  .src-grid{display:flex;gap:18px;flex-wrap:wrap}
+  .src-grid .s{font-size:11.5px;color:var(--ink)}
+  .src-grid .s b{display:block;font-size:17px;color:var(--navy);font-weight:700}
+  .kappa{
+    display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--green);
+    background:var(--green-bg);padding:3px 10px;border-radius:20px;font-weight:600;margin-top:7px;
+  }
+
+  /* ===== TABLE ===== */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+  .filters .flabel{font-size:11px;color:var(--muted);font-weight:600;margin-right:2px}
+  .fbtn{
+    font-family:inherit;font-size:11.5px;font-weight:600;padding:6px 13px;border-radius:20px;
+    border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;transition:all .16s;
+  }
+  .fbtn:hover{border-color:var(--teal);color:var(--teal)}
+  .fbtn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .tbl-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow)}
+  table{border-collapse:collapse;width:100%;font-size:11.5px;background:#fff}
+  thead th{
+    background:var(--navy);color:#fff;font-weight:600;font-size:10.5px;
+    padding:9px 10px;text-align:left;letter-spacing:.02em;position:sticky;top:0;white-space:nowrap;
+  }
+  tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr.d1{background:#fff}
+  tbody tr.d1:nth-child(even){background:#F8FAFC}
+  tbody tr.d2{background:#F0FDFA}
+  tbody tr.d2:nth-child(even){background:#EFF6FF}
+  tbody tr:hover{background:var(--teal-soft)!important}
+  .author{font-weight:700;color:var(--navy);white-space:nowrap}
+  .yr{color:var(--muted);font-weight:400}
+  .pill{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px;white-space:nowrap}
+  .pill.rct{background:var(--teal-soft);color:var(--teal)}
+  .pill.ma{background:#EDE9FE;color:#7C3AED}
+  .pill.adj{background:var(--green-bg);color:var(--green)}
+  .pill.mono{background:var(--gray-bg);color:var(--muted)}
+  .dom-cap{font-size:11px;font-weight:700;color:var(--navy);margin:14px 0 7px;display:flex;align-items:center;gap:8px}
+  .dom-cap::before{content:'';width:14px;height:14px;border-radius:4px;background:var(--navy)}
+  .dom-cap.d2::before{background:var(--teal)}
+  .tbl-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5}
+
+  /* ===== CHARTS ===== */
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:20px 22px;box-shadow:var(--shadow)}
+  .card h3{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:3px}
+  .card .q{font-size:11px;color:var(--muted);margin-bottom:16px;font-style:italic}
+  .barrow{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+  .barrow .bl{font-size:11px;color:var(--ink);width:120px;text-align:right;font-weight:500;flex-shrink:0}
+  .bartrack{flex:1;height:18px;background:var(--gray-bg);border-radius:5px;overflow:hidden}
+  .barfill{height:100%;width:0;border-radius:5px;transition:width .7s cubic-bezier(.22,1,.36,1)}
+  .barfill.t{background:linear-gradient(90deg,var(--navy),var(--navy-soft))}
+  .barfill.c{background:linear-gradient(90deg,var(--teal),#22B8D9)}
+  .barfill.gap{background:repeating-linear-gradient(45deg,#fecaca,#fecaca 5px,#fee2e2 5px,#fee2e2 10px)}
+  .barrow .bv{font-size:11px;font-weight:700;color:var(--navy);width:34px;flex-shrink:0}
+  .barrow .bv.gap{color:var(--red)}
+  .vbars{display:flex;align-items:flex-end;justify-content:space-around;height:160px;gap:8px;padding-top:10px}
+  .vb{display:flex;flex-direction:column;align-items:center;flex:1;height:100%;justify-content:flex-end;gap:5px}
+  .vb .vfill{width:62%;max-width:38px;background:linear-gradient(180deg,#22B8D9,var(--teal));border-radius:5px 5px 0 0;height:0;transition:height .7s cubic-bezier(.22,1,.36,1)}
+  .vb .vn{font-size:11px;font-weight:700;color:var(--navy)}
+  .vb .vy{font-size:10px;color:var(--muted)}
+  .insight{
+    margin-top:14px;font-size:11.5px;color:var(--ink);line-height:1.55;
+    background:var(--teal-soft);border-radius:9px;padding:11px 14px;
+  }
+  .insight b{color:var(--teal)}
+  .geo{grid-column:1 / -1;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .geo .gnote{flex:1;min-width:240px}
+
+  /* ===== MATRIX ===== */
+  .matrix-scroll{width:100%;overflow:auto;border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow)}
+  table.matrix{font-size:11px}
+  table.matrix th{background:var(--navy);font-size:9.5px;text-align:center;white-space:normal;line-height:1.3;padding:8px 6px;vertical-align:middle}
+  table.matrix th.rowh{background:var(--navy)}
+  table.matrix td{text-align:center;font-weight:700;font-size:13px;padding:0;border:1px solid #fff}
+  table.matrix td.rowlbl{background:#EFF6FF;color:var(--navy);font-size:11px;font-weight:700;text-align:left;padding:9px 11px;white-space:nowrap}
+  .cell{display:flex;align-items:center;justify-content:center;height:38px;cursor:default;transition:filter .15s}
+  .cell:hover{filter:brightness(.94)}
+  .cell.yes{background:var(--green-bg);color:var(--green)}
+  .cell.lim{background:var(--amber-bg);color:var(--amber)}
+  .cell.no{background:var(--red-bg);color:var(--red)}
+  .legend{display:flex;gap:20px;flex-wrap:wrap;margin-top:14px;align-items:center;font-size:11.5px}
+  .legend .lg{display:flex;align-items:center;gap:7px;font-weight:600}
+  .legend .sw{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .sw.yes{background:var(--green-bg);color:var(--green)}
+  .sw.lim{background:var(--amber-bg);color:var(--amber)}
+  .sw.no{background:var(--red-bg);color:var(--red)}
+  .gap-note{
+    margin-top:14px;font-size:11.5px;color:var(--ink);line-height:1.6;
+    background:var(--red-bg);border-radius:9px;padding:12px 16px;border-left:3px solid var(--red);
+  }
+  .gap-note b{color:var(--red)}
+
+  /* ===== SYNTHESIS ===== */
+  .syn-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .syn-col h3{
+    font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:9px;
+  }
+  .syn-col.find h3{color:var(--navy)}
+  .syn-col.gap h3{color:var(--red)}
+  .syn-col h3 .ico{
+    width:22px;height:22px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;
+    font-size:12px;color:#fff;
+  }
+  .find h3 .ico{background:var(--navy)}
+  .gap h3 .ico{background:var(--red)}
+  .item{
+    background:var(--panel);border:1px solid var(--line);border-radius:11px;
+    padding:13px 16px;margin-bottom:11px;box-shadow:var(--shadow);
+  }
+  .item .it{font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:4px;line-height:1.35}
+  .gap .item .it{color:var(--red)}
+  .item .ib{font-size:11px;color:var(--muted);line-height:1.55}
+  .closing{
+    grid-column:1 / -1;margin-top:6px;background:var(--navy);color:#fff;
+    border-radius:13px;padding:18px 24px;text-align:center;
+  }
+  .closing p{font-size:12.5px;line-height:1.6;opacity:.92;max-width:780px;margin:0 auto 10px}
+  .closing .sig{font-size:12px;font-weight:600;letter-spacing:.02em}
+  .closing .restart{
+    margin-top:12px;font-family:inherit;font-size:12px;font-weight:600;
+    background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);
+    padding:8px 18px;border-radius:8px;cursor:pointer;transition:all .18s;
+  }
+  .closing .restart:hover{background:rgba(255,255,255,.22)}
+
+  .footstamp{font-size:10px;color:var(--amber);font-weight:600;letter-spacing:.04em}
+
+  @media (max-width:920px){
+    .charts,.syn-grid{grid-template-columns:1fr}
+    .landing h1{font-size:25px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header>
+  <div class="brand">
+    <span class="tag sim">Simulasi</span>
+    <span class="ttl">Vitamin D &amp; MDD <span>· Scoping Review JBI</span></span>
+  </div>
+  <div class="dots" id="dots"></div>
+  <div class="hsection" id="hsection">Pembuka</div>
+</header>
+
+<!-- ============ STAGE ============ -->
+<div id="stage">
+
+  <!-- ===== SECTION 0 — LANDING ===== -->
+  <section class="section active" data-name="Pembuka">
+    <div class="logo-uni">UNIVERSITAS JAMBI<span>FKIK · PSPD · TA 2025/2026</span></div>
+    <div class="wrap landing">
+      <div class="badge">Demo Interaktif · Simulasi Alur &amp; Output Penelitian</div>
+      <h1>Mekanisme Modulasi Neuroinflamasi Vitamin D<br>sebagai Terapi Adjuvan pada Pasien MDD Dewasa</h1>
+      <div class="proto">Scoping Review · Protokol Joanna Briggs Institute (JBI) · Pelaporan PRISMA-ScR</div>
+      <div class="who">Habib ‘Arsy Tritura Ebsyar &nbsp;·&nbsp; NIM G1A122128</div>
+      <div class="disc">
+        Demo ini mendemonstrasikan <b>bagaimana proses dan format keluaran</b> scoping review akan
+        disajikan ketika penelitian dijalankan. Seluruh angka, studi, dan visual bersifat
+        <b>ilustratif sebagai contoh format output</b> — bukan hasil penelitian dan tidak
+        merepresentasikan temuan final.
+      </div>
+      <div>
+        <button class="start" onclick="go(1)">▶ &nbsp;Mulai Demo Output Penelitian</button>
+      </div>
+      <div class="kbtip">Navigasi: <kbd>→</kbd> maju &nbsp;·&nbsp; <kbd>←</kbd> mundur &nbsp;·&nbsp; atau klik titik di atas</div>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 1 — PRISMA ===== -->
+  <section class="section" data-name="Output 1/5 · PRISMA-ScR">
+    <div class="wrap">
+      <div class="sec-kicker">Output 1 / 5 <span class="ill">Ilustrasi Alur</span></div>
+      <div class="sec-title">Alur Seleksi Literatur (PRISMA-ScR)</div>
+      <div class="sec-sub">Contoh alur lima-tahap JBI — angka mengikuti estimasi protokol pada proposal, bersifat ilustratif</div>
+
+      <div class="prisma">
+        <div class="pf-row">
+          <div class="pf-box main">
+            <div class="pf-stage">1 · Identifikasi</div>
+            <div class="src-grid">
+              <div class="s"><b>187</b>PubMed/PMC</div>
+              <div class="s"><b>163</b>Scopus</div>
+              <div class="s"><b>118</b>Europe PMC</div>
+              <div class="s"><b>468</b>Total hit</div>
+            </div>
+            <div class="pf-detail">MeSH + Title/Abstract · filter 2020–2026 · Humans · EN/ID · Open Access</div>
+          </div>
+        </div>
+        <div class="pf-arrow"></div>
+        <div class="pf-row">
+          <div class="pf-box main">
+            <div class="pf-stage">2 · Setelah Deduplikasi</div>
+            <div class="pf-num">310 <span style="font-size:12px;color:var(--muted);font-weight:500">rekaman unik</span></div>
+            <div class="pf-lbl">Deduplikasi otomatis (Mendeley) + manual berbasis judul</div>
+          </div>
+          <div class="pf-box excl">
+            <div class="pf-stage">Duplikat dibuang</div>
+            <div class="pf-num" style="color:var(--red)">158</div>
+          </div>
+        </div>
+        <div class="pf-arrow"></div>
+        <div class="pf-row">
+          <div class="pf-box main">
+            <div class="pf-stage">3 · Screening Judul &amp; Abstrak</div>
+            <div class="pf-num">80 <span style="font-size:12px;color:var(--muted);font-weight:500">lolos</span></div>
+            <div class="pf-lbl">Dinilai berdasarkan kriteria PCC inklusi/eksklusi</div>
+          </div>
+          <div class="pf-box excl">
+            <div class="pf-stage">Eksklusi</div>
+            <div class="pf-num" style="color:var(--red)">230</div>
+            <div class="pf-detail">Topik tidak relevan, populasi/desain tidak sesuai, tanpa biomarker</div>
+          </div>
+        </div>
+        <div class="pf-arrow"></div>
+        <div class="pf-row">
+          <div class="pf-box main">
+            <div class="pf-stage">4 · Penilaian Full-Text</div>
+            <div class="pf-num">10 <span style="font-size:12px;color:var(--muted);font-weight:500">memenuhi syarat</span></div>
+            <div class="pf-lbl">Evaluasi naskah lengkap terhadap seluruh kriteria</div>
+            <span class="kappa">◆ Cohen’s κ = 0,82 (target ≥ 0,80)</span>
+          </div>
+          <div class="pf-box excl">
+            <div class="pf-stage">Eksklusi Full-Text</div>
+            <div class="pf-num" style="color:var(--red)">70</div>
+            <div class="pf-detail">Monoterapi · ko-suplementasi · tanpa biomarker · usia di luar 18–65 · komorbid mayor</div>
+          </div>
+        </div>
+        <div class="pf-arrow"></div>
+        <div class="pf-row">
+          <div class="pf-box final">
+            <div class="pf-stage">✓ Studi Diinklusi ke Pemetaan</div>
+            <div class="pf-num">10 studi &nbsp;<span style="font-size:12px;color:var(--green);font-weight:500">— 5 Domain Biomarker · 5 Domain Skor Klinis</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 2 — TABLE ===== -->
+  <section class="section" data-name="Output 2/5 · Ekstraksi Data">
+    <div class="wrap">
+      <div class="sec-kicker">Output 2 / 5 <span class="ill">Contoh Format Ekstraksi</span></div>
+      <div class="sec-title">Tabel Karakteristik Studi</div>
+      <div class="sec-sub">Contoh format keluaran ekstraksi data (JBI) — menampilkan lima studi yang dirujuk di proposal sebagai ilustrasi tampilan</div>
+
+      <div class="filters">
+        <span class="flabel">Filter desain:</span>
+        <button class="fbtn on" data-f="all" onclick="filt(this,'all')">Semua</button>
+        <button class="fbtn" data-f="rct" onclick="filt(this,'rct')">RCT</button>
+        <button class="fbtn" data-f="ma" onclick="filt(this,'ma')">Meta-analisis</button>
+        <button class="fbtn" data-f="adj" onclick="filt(this,'adj')">Adjuvan</button>
+      </div>
+
+      <div class="tbl-scroll">
+        <table id="stbl">
+          <thead>
+            <tr>
+              <th>Penulis / Tahun</th><th>Negara</th><th>Desain</th><th>N</th>
+              <th>Dosis Vitamin D &amp; Durasi</th><th>Mode</th><th>Biomarker / Skor</th>
+              <th>Catatan Studi (sesuai proposal)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="d1" data-d="rct adj">
+              <td class="author">Kaviani dkk. <span class="yr">2022</span></td><td>Iran</td>
+              <td><span class="pill rct">RCT 2-blind</span></td><td>60</td>
+              <td>50.000 IU / 2 minggu · 8 minggu</td>
+              <td><span class="pill mono">Monoterapi</span></td>
+              <td>IL-1β · IL-6 · CRP</td>
+              <td>Skor BDI-II membaik; perubahan biomarker perifer tidak bermakna — indikasi mekanisme non-perifer / perlu durasi lebih panjang.</td>
+            </tr>
+            <tr class="d1" data-d="rct adj">
+              <td class="author">Khoraminya dkk. <span class="yr">2013</span></td><td>Iran</td>
+              <td><span class="pill rct">RCT 3-kel.</span></td><td>42</td>
+              <td>VD3 1.500 IU/hari + fluoxetine 20 mg · 8 minggu</td>
+              <td><span class="pill adj">Adjuvan</span></td>
+              <td>Skor HDRS</td>
+              <td>Kombinasi VD3 + fluoxetine lebih unggul dari fluoxetine saja mulai minggu ke-4; mendukung konsep efek adjuvan.</td>
+            </tr>
+            <tr class="d1" data-d="ma">
+              <td class="author">Moslemi dkk. <span class="yr">2022</span></td><td>Multi-negara</td>
+              <td><span class="pill ma">Umbrella MA</span></td><td>81 RCT</td>
+              <td>1.000–50.000 IU/hari · berbagai durasi</td>
+              <td><span class="pill mono">Berbagai</span></td>
+              <td>IL-6 · TNF-α · CRP</td>
+              <td>Penurunan IL-6 &amp; TNF-α; besar efek bervariasi menurut derajat defisiensi baseline (bukti translasional anti-inflamasi).</td>
+            </tr>
+            <tr class="d1" data-d="ma">
+              <td class="author">Ghaemi dkk. <span class="yr">2024</span></td><td>Multi-negara</td>
+              <td><span class="pill ma">MA dose-resp.</span></td><td>Pooled</td>
+              <td>Berbagai dosis &amp; durasi</td>
+              <td><span class="pill mono">Berbagai</span></td>
+              <td>Skor depresi · subgrup 25(OH)D</td>
+              <td>Efek paling menonjol pada subset defisiensi berat (25(OH)D &lt; 20 ng/mL); implikasi kriteria inklusi defisiensi.</td>
+            </tr>
+            <tr class="d1" data-d="rct">
+              <td class="author">Behshad dkk. <span class="yr">2025</span></td><td>Iran</td>
+              <td><span class="pill rct">RCT</span></td><td>60</td>
+              <td>VD3 · 12 minggu</td>
+              <td><span class="pill mono">Translasional</span></td>
+              <td>NLRP3 (ekspresi gen)</td>
+              <td>Penurunan ekspresi gen NLRP3 pada PBMC (populasi T2DM) — bukti translasional inhibisi inflammasome pada sel imun manusia.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tbl-note">
+        Lima entri di atas adalah “Contoh Hasil Ekstraksi Data” sebagaimana tercantum di proposal (Tabel 3.6-1).
+        Pada penelitian aktual, tabel ini akan diperluas menjadi seluruh studi terinklusi (target ±10 studi: Domain Biomarker + Domain Skor Klinis),
+        diisi setelah seleksi final. Filter &amp; pengurutan kolom tersedia untuk menelusuri pola karakteristik studi.
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 3 — VISUALISATION ===== -->
+  <section class="section" data-name="Output 3/5 · Visualisasi">
+    <div class="wrap">
+      <div class="sec-kicker">Output 3 / 5 <span class="ill">Contoh Visualisasi</span></div>
+      <div class="sec-title">Visualisasi Distribusi &amp; Pola Bukti</div>
+      <div class="sec-sub">Contoh jenis grafik yang akan dihasilkan — nilai bersifat ilustratif untuk menunjukkan format keluaran</div>
+
+      <div class="charts">
+        <div class="card">
+          <h3>Distribusi Biomarker yang Dipetakan</h3>
+          <div class="q">Contoh: frekuensi parameter yang diukur antar studi terinklusi</div>
+          <div id="bars1"></div>
+          <div class="insight">Format ini akan menyoroti parameter mana yang paling sering diukur dan mana yang <b>jarang/belum tersentuh</b> — menjadi pintu masuk identifikasi kesenjangan.</div>
+        </div>
+        <div class="card">
+          <h3>Sebaran Tahun Publikasi</h3>
+          <div class="q">Contoh: distribusi studi sepanjang rentang PCC</div>
+          <div class="vbars" id="vbars"></div>
+          <div class="insight">Timeline membantu menilai <b>kebaruan</b> dan tren akumulasi bukti pada rentang penelusuran 2020–2026.</div>
+        </div>
+        <div class="card geo">
+          <div style="flex:0 0 auto">
+            <h3 style="margin-bottom:10px">Sebaran Geografis (ilustrasi)</h3>
+            <div id="bars3" style="min-width:300px"></div>
+          </div>
+          <div class="gnote">
+            <div class="insight" style="margin-top:0">Peta asal studi akan menunjukkan <b>konsentrasi geografis</b> bukti. Bila dominan pada satu kawasan, hal ini menandai perlunya kehati-hatian generalisasi dan peluang riset pada konteks lain (mis. Asia Tenggara/Indonesia).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 4 — EVIDENCE GAP ===== -->
+  <section class="section" data-name="Output 4/5 · Evidence Gap">
+    <div class="wrap">
+      <div class="sec-kicker">Output 4 / 5 <span class="ill">Ilustrasi Matriks</span></div>
+      <div class="sec-title">Matriks Kesenjangan Bukti (Evidence Gap)</div>
+      <div class="sec-sub">Contoh format matriks — pola sel akan ditentukan dari hasil ekstraksi aktual; di sini hanya menunjukkan cara membaca keluaran</div>
+
+      <div class="matrix-scroll">
+        <table class="matrix" id="mtx">
+          <thead>
+            <tr>
+              <th class="rowh" style="text-align:left;min-width:96px">Biomarker</th>
+              <th>RCT Adjuvan<br>VD + SSRI</th>
+              <th>RCT Adjuvan<br>VD + SNRI</th>
+              <th>Populasi<br>Asia Tenggara</th>
+              <th>Durasi<br>≥ 12 minggu</th>
+              <th>NLRP3 / IDO<br>sbg endpoint</th>
+              <th>Defisiensi berat<br>&lt; 20 ng/mL</th>
+            </tr>
+          </thead>
+          <tbody><!-- generated --></tbody>
+        </table>
+      </div>
+
+      <div class="legend">
+        <div class="lg"><span class="sw yes">✓</span> Bukti tersedia (ilustrasi)</div>
+        <div class="lg"><span class="sw lim">⚠</span> Terbatas / tidak spesifik MDD</div>
+        <div class="lg"><span class="sw no">✗</span> Belum terisi — area kesenjangan</div>
+      </div>
+
+      <div class="gap-note">
+        <b>Cara membaca:</b> setiap sel kosong (✗) menandai persilangan biomarker × karakteristik metodologis yang belum tergambar dalam literatur.
+        Dalam pelaporan aktual, pola sel inilah yang menjadi dasar <b>peta prioritas riset lanjutan</b> — bukan kesimpulan hasil, melainkan penanda arah penelitian berikutnya.
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECTION 5 — SYNTHESIS ===== -->
+  <section class="section" data-name="Output 5/5 · Sintesis">
+    <div class="wrap">
+      <div class="sec-kicker">Output 5 / 5 <span class="ill">Format Pelaporan</span></div>
+      <div class="sec-title">Format Sintesis &amp; Knowledge Gap</div>
+      <div class="sec-sub">Contoh kerangka pelaporan akhir — menampilkan jenis temuan &amp; kategori kesenjangan yang akan dipetakan, bukan hasil</div>
+
+      <div class="syn-grid">
+        <div class="syn-col find">
+          <h3><span class="ico">✦</span> Kategori Temuan yang Akan Disintesis</h3>
+          <div class="item">
+            <div class="it">Profil biomarker yang dipetakan</div>
+            <div class="ib">Jenis sitokin/parameter inflamasi yang diukur antar studi serta seberapa sering masing-masing muncul dalam literatur terinklusi.</div>
+          </div>
+          <div class="item">
+            <div class="it">Arah &amp; magnitudo perubahan</div>
+            <div class="ib">Pola arah perubahan biomarker pasca-suplementasi (menurun / tidak berubah) beserta variasi besar efek bila dilaporkan studi asli.</div>
+          </div>
+          <div class="item">
+            <div class="it">Korelasi biomarker ↔ skor klinis</div>
+            <div class="ib">Pemetaan keterkaitan antara perubahan parameter inflamasi dan perbaikan skor depresi (HDRS / MADRS / BDI-II / PHQ-9) sebagaimana dilaporkan.</div>
+          </div>
+          <div class="item">
+            <div class="it">Heterogenitas metodologis</div>
+            <div class="ib">Karakterisasi variasi dosis, durasi, desain, dan populasi — sebagai konteks pembacaan bukti, sesuai sifat scoping review.</div>
+          </div>
+        </div>
+
+        <div class="syn-col gap">
+          <h3><span class="ico">!</span> Kategori Knowledge Gap yang Akan Diidentifikasi</h3>
+          <div class="item">
+            <div class="it">Jalur mekanistik yang minim diuji</div>
+            <div class="ib">Persilangan biomarker/jalur (mis. NLRP3, IDO-kynurenine) yang belum banyak dijadikan endpoint pada populasi MDD akan disorot sebagai celah.</div>
+          </div>
+          <div class="item">
+            <div class="it">Kesenjangan konteks geografis</div>
+            <div class="ib">Kawasan/populasi yang belum terwakili dalam bukti — relevan untuk menilai keterterapan pada konteks lokal Indonesia.</div>
+          </div>
+          <div class="item">
+            <div class="it">Kesenjangan parameter intervensi</div>
+            <div class="ib">Kombinasi antidepresan, rentang dosis, atau durasi yang belum tergambar lengkap dalam literatur terinklusi.</div>
+          </div>
+          <div class="item">
+            <div class="it">Arah riset lanjutan</div>
+            <div class="ib">Rumusan prioritas penelitian berikutnya (mis. desain RCT mekanistik adjuvan) yang diturunkan dari pola kesenjangan, bukan dari klaim hasil.</div>
+          </div>
+        </div>
+
+        <div class="closing">
+          <p>Scoping review ini bertujuan <b>memetakan dan mengkarakterisasi</b> bukti serta mengidentifikasi kesenjangan — bukan menghasilkan rekomendasi klinis definitif. Seluruh tampilan dalam demo ini menggambarkan <b>format &amp; alur keluaran</b> yang akan dihasilkan saat penelitian dijalankan.</p>
+          <div class="sig">Habib ‘Arsy Tritura Ebsyar · NIM G1A122128 · FKIK Universitas Jambi</div>
+          <button class="restart" onclick="go(0)">↺ Kembali ke Awal</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <button class="navbtn" id="prev" onclick="go(cur-1)">← Sebelumnya</button>
+  <div class="foot-hint footstamp" id="fstamp">DEMO SIMULASI · DATA ILUSTRATIF</div>
+  <button class="navbtn primary" id="next" onclick="go(cur+1)">Selanjutnya →</button>
+</footer>
+
+<script>
+const sections = Array.from(document.querySelectorAll('.section'));
+const total = sections.length;
+let cur = 0;
+
+// build dots
+const dotsEl = document.getElementById('dots');
+sections.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.className='dot'+(i===0?' active':'');
+  b.title=s.dataset.name;
+  b.onclick=()=>go(i);
+  dotsEl.appendChild(b);
+});
+const dots=Array.from(dotsEl.children);
+
+function go(i){
+  if(i<0||i>=total||i===cur) { if(i<0||i>=total) return; }
+  if(i<0) i=0; if(i>=total) i=total-1;
+  sections[cur].classList.remove('active');
+  dots[cur].classList.remove('active');
+  cur=i;
+  sections[cur].classList.add('active');
+  dots[cur].classList.add('active');
+  document.getElementById('hsection').textContent=sections[cur].dataset.name;
+  document.getElementById('prev').disabled = (cur===0);
+  document.getElementById('next').disabled = (cur===total-1);
+  document.getElementById('fstamp').style.visibility = (cur===0)?'hidden':'visible';
+  // trigger animations for charts/matrix
+  if(cur===3) animateCharts();
+  if(cur===4) buildMatrix();
+}
+
+// keyboard
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(cur+1);}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(cur-1);}
+  else if(e.key==='Home'){e.preventDefault();go(0);}
+  else if(e.key==='End'){e.preventDefault();go(total-1);}
+});
+
+// ===== Table filter =====
+function filt(btn,f){
+  document.querySelectorAll('.filters .fbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('#stbl tbody tr').forEach(tr=>{
+    const d=tr.dataset.d||'';
+    tr.style.display = (f==='all'||d.includes(f))?'':'none';
+  });
+}
+
+// ===== Charts data (ILLUSTRATIVE) =====
+const bars1Data=[
+  {l:'IL-6',v:80,n:'tinggi'},{l:'TNF-α',v:70,n:'tinggi'},{l:'CRP',v:60,n:'sedang'},
+  {l:'IL-1β',v:40,n:'sedang'},{l:'Skor klinis depresi',v:60,n:'sedang'},
+  {l:'NLRP3',v:10,n:'rendah'},{l:'IDO / Kynurenine',v:0,n:'gap'}
+];
+const vbarsData=[
+  {y:'2020',v:35},{y:'2021',v:45},{y:'2022',v:80},{y:'2023',v:60},{y:'2024',v:75},{y:'2025',v:50}
+];
+const bars3Data=[
+  {l:'Timur Tengah',v:60},{l:'Eropa',v:18},{l:'Amerika',v:12},{l:'Asia Tenggara',v:0}
+];
+
+function buildBars(){
+  const c1=document.getElementById('bars1'); c1.innerHTML='';
+  bars1Data.forEach(d=>{
+    const gap=d.v===0;
+    c1.innerHTML+=`<div class="barrow"><div class="bl">${d.l}</div>
+      <div class="bartrack"><div class="barfill ${gap?'gap':'t'}" data-w="${d.v}"></div></div>
+      <div class="bv ${gap?'gap':''}">${gap?'—':d.v+'%'}</div></div>`;
+  });
+  const vb=document.getElementById('vbars'); vb.innerHTML='';
+  vbarsData.forEach(d=>{
+    vb.innerHTML+=`<div class="vb"><div class="vn">${d.y==='2022'?'●':''}</div>
+      <div class="vfill" data-h="${d.v}"></div><div class="vy">${d.y}</div></div>`;
+  });
+  const c3=document.getElementById('bars3'); c3.innerHTML='';
+  bars3Data.forEach(d=>{
+    const gap=d.v===0;
+    c3.innerHTML+=`<div class="barrow"><div class="bl" style="width:96px">${d.l}</div>
+      <div class="bartrack"><div class="barfill ${gap?'gap':'c'}" data-w="${d.v}"></div></div>
+      <div class="bv ${gap?'gap':''}">${gap?'—':d.v+'%'}</div></div>`;
+  });
+}
+let chartsAnimated=false;
+function animateCharts(){
+  buildBars();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.querySelectorAll('#bars1 .barfill,#bars3 .barfill').forEach(f=>{
+      f.style.width=(f.dataset.w)+'%';
+    });
+    document.querySelectorAll('#vbars .vfill').forEach(f=>{
+      f.style.height=(f.dataset.h)+'%';
+    });
+  }));
+}
+
+// ===== Matrix (ILLUSTRATIVE pattern) =====
+const mtxRows=[
+  {b:'IL-6',     c:['yes','no','no','lim','no','yes']},
+  {b:'TNF-α',    c:['yes','no','no','lim','no','lim']},
+  {b:'CRP',      c:['yes','no','no','yes','no','yes']},
+  {b:'IL-1β',    c:['lim','no','no','no','no','no']},
+  {b:'IFN-γ',    c:['no','no','no','no','no','no']},
+  {b:'NLRP3',    c:['no','no','no','no','lim','no']},
+  {b:'IDO/Kyn.', c:['no','no','no','no','no','no']},
+  {b:'IL-18',    c:['no','no','no','no','no','no']}
+];
+const sym={yes:'✓',lim:'⚠',no:'✗'};
+let mtxBuilt=false;
+function buildMatrix(){
+  if(mtxBuilt) return; mtxBuilt=true;
+  const tb=document.querySelector('#mtx tbody');
+  mtxRows.forEach(r=>{
+    let tds=`<td class="rowlbl">${r.b}</td>`;
+    r.c.forEach(st=>{ tds+=`<td><div class="cell ${st}">${sym[st]}</div></td>`; });
+    tb.innerHTML+=`<tr>${tds}</tr>`;
+  });
+}
+
+// init
+document.getElementById('prev').disabled=true;
+document.getElementById('fstamp').style.visibility='hidden';
+</script>
+</body>
+</html>
